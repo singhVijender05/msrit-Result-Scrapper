@@ -118,6 +118,7 @@ def showGraph(studentDictionary):
     plt.title(f"Grades of {studentDictionary['name']}")
     plt.show()
 
+
 def createTable(studentsList):
     table_data = []
     for student in studentsList:
@@ -127,7 +128,9 @@ def createTable(studentsList):
         cgpa = student.get("cgpa", "-")
         table_data.append([usn, name, sgpa, cgpa])
 
-    table = tabulate(table_data, headers=["USN", "Name", "SGPA", "CGPA"], tablefmt="pretty")
+    table = tabulate(
+        table_data, headers=["USN", "Name", "SGPA", "CGPA"], tablefmt="pretty"
+    )
     print(table)
 
 
@@ -148,13 +151,16 @@ def createExcel(studentsList, filename):
 
     workbook.save(filename)
 
+
 def calculateSubjectWiseAverage(studentsList):
     subjectCodeToGrade = dict()
     subjectCodeToCount = dict()
 
+    valid_cgpa_values = []
+    valid_sgpa_values = []
+
     for student in studentsList:
         for subjectCode, grade in student["subjectCodeToGrade"].items():
-
             if "AEC" in subjectCode:
                 subjectCode = "AEC"
             elif "HS" in subjectCode:
@@ -167,6 +173,18 @@ def calculateSubjectWiseAverage(studentsList):
                 subjectCodeToGrade[subjectCode].append(grade)
                 subjectCodeToCount[subjectCode] += 1
 
+        try:
+            cgpa = float(student["cgpa"])
+            valid_cgpa_values.append(cgpa)
+        except ValueError:
+            pass
+
+        try:
+            sgpa = float(student["sgpa"])
+            valid_sgpa_values.append(sgpa)
+        except ValueError:
+            pass
+
     subjectCodeToAverage = dict()
     for subjectCode, grades in subjectCodeToGrade.items():
         totalStudents = subjectCodeToCount[subjectCode]
@@ -175,8 +193,8 @@ def calculateSubjectWiseAverage(studentsList):
         )
 
     totalStudents = len(studentsList)
-    cgpa = sum([float(student["cgpa"]) for student in studentsList]) / totalStudents
-    sgpa = sum([float(student["sgpa"]) for student in studentsList]) / totalStudents
+    cgpa = sum(valid_cgpa_values) / totalStudents
+    sgpa = sum(valid_sgpa_values) / totalStudents
 
     for subjectCode, grade in subjectCodeToAverage.items():
         if grade >= 10:
@@ -199,8 +217,8 @@ def calculateSubjectWiseAverage(studentsList):
     averageData = {
         "name": "Average",
         "usn": "Average",
-        "cgpa": round(cgpa,2),
-        "sgpa": round(sgpa,2),
+        "cgpa": round(cgpa, 2),
+        "sgpa": round(sgpa, 2),
         "subjectCodeToGrade": subjectCodeToAverage,
     }
 
