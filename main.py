@@ -1,10 +1,26 @@
 import requests
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 import json
+from openpyxl import Workbook
 
 studentsList = []
 studentDictionary = dict()
+gradeToMarks = {
+    "O": 10,
+    "A+": 9,
+    "A": 8,
+    "B+": 7,
+    "B": 6,
+    "C": 5,
+    "P": 4,
+    "F": 0,
+    "NE": 0,
+    "X": 0,
+    "I": 0,
+    "TAL": 0,
+}
 
 
 def payset(usn):
@@ -82,7 +98,7 @@ def showGraph(studentDictionary):
         x,
         [grades.index(grade) for grade in studentGrades],
         label=f"{studentDictionary['usn']}\n{studentDictionary['name']}\ncgpa:{studentDictionary['cgpa']}\nsgpa:{studentDictionary['sgpa']}",
-        color = 'gray',
+        color="purple",
     )
 
     plt.subplots_adjust(top=0.9)
@@ -102,6 +118,94 @@ def showGraph(studentDictionary):
     plt.title(f"Grades of {studentDictionary['name']}")
     plt.show()
 
+def createTable(studentsList):
+    table_data = []
+    for student in studentsList:
+        usn = student.get("usn", "-")
+        name = student.get("name", "-")
+        sgpa = student.get("sgpa", "-")
+        cgpa = student.get("cgpa", "-")
+        table_data.append([usn, name, sgpa, cgpa])
+
+    table = tabulate(table_data, headers=["USN", "Name", "SGPA", "CGPA"], tablefmt="pretty")
+    print(table)
+
+
+def createExcel(studentsList, filename):
+    workbook = Workbook()
+    sheet = workbook.active
+
+    # Write header row
+    sheet.append(["USN", "Name", "SGPA", "CGPA"])
+
+    # Write data rows
+    for student in studentsList:
+        usn = student.get("usn", "-")
+        name = student.get("name", "-")
+        sgpa = student.get("sgpa", "-")
+        cgpa = student.get("cgpa", "-")
+        sheet.append([usn, name, sgpa, cgpa])
+
+    workbook.save(filename)
+
+def calculateSubjectWiseAverage(studentsList):
+    subjectCodeToGrade = dict()
+    subjectCodeToCount = dict()
+
+    for student in studentsList:
+        for subjectCode, grade in student["subjectCodeToGrade"].items():
+
+            if "AEC" in subjectCode:
+                subjectCode = "AEC"
+            elif "HS" in subjectCode:
+                subjectCode = "HS"
+
+            if subjectCode not in subjectCodeToGrade:
+                subjectCodeToGrade[subjectCode] = [grade]
+                subjectCodeToCount[subjectCode] = 1
+            else:
+                subjectCodeToGrade[subjectCode].append(grade)
+                subjectCodeToCount[subjectCode] += 1
+
+    subjectCodeToAverage = dict()
+    for subjectCode, grades in subjectCodeToGrade.items():
+        totalStudents = subjectCodeToCount[subjectCode]
+        subjectCodeToAverage[subjectCode] = (
+            sum([float(gradeToMarks[grade]) for grade in grades]) / totalStudents
+        )
+
+    totalStudents = len(studentsList)
+    cgpa = sum([float(student["cgpa"]) for student in studentsList]) / totalStudents
+    sgpa = sum([float(student["sgpa"]) for student in studentsList]) / totalStudents
+
+    for subjectCode, grade in subjectCodeToAverage.items():
+        if grade >= 10:
+            subjectCodeToAverage[subjectCode] = "O"
+        elif grade >= 9:
+            subjectCodeToAverage[subjectCode] = "A+"
+        elif grade >= 8:
+            subjectCodeToAverage[subjectCode] = "A"
+        elif grade >= 7:
+            subjectCodeToAverage[subjectCode] = "B+"
+        elif grade >= 6:
+            subjectCodeToAverage[subjectCode] = "B"
+        elif grade >= 5:
+            subjectCodeToAverage[subjectCode] = "C"
+        elif grade >= 4:
+            subjectCodeToAverage[subjectCode] = "P"
+        else:
+            subjectCodeToAverage[subjectCode] = "F"
+
+    averageData = {
+        "name": "Average",
+        "usn": "Average",
+        "cgpa": round(cgpa,2),
+        "sgpa": round(sgpa,2),
+        "subjectCodeToGrade": subjectCodeToAverage,
+    }
+
+    showGraph(averageData)
+
 
 while True:
     choice = int(
@@ -114,11 +218,16 @@ while True:
             getUsnList()
             with open("data.json", "w") as file:
                 json.dump(studentsList, file)
+            createTable(studentsList)
+            createExcel(studentsList, "student_data.xlsx")
+            calculateSubjectWiseAverage(studentsList)
+            studentsList.clear()
+            studentDictionary.clear()
         case 2:
             usn = input("Enter the USN number: ")
             branchCode = input("Enter the branch code: ")
             year = input("Enter the year: ")
-            studentDictionary = getResult("1ms" + year + branchCode + usn)
+            studentDictionary = getResult("1ms" + year + branchCode + str(usn).zfill(3))
             showGraph(studentDictionary)
         case 3:
             exit()
