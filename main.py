@@ -20,6 +20,7 @@ gradeToMarks = {
     "X": 0,
     "I": 0,
     "TAL": 0,
+    "W":0
 }
 
 
