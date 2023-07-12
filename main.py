@@ -253,7 +253,6 @@ while True:
             createTable(studentsList)
             createExcel(studentsList, "student_data.xlsx")
             calculateSubjectWiseAverage(studentsList)
-            print("No of failed students are: ", failedStudents(studentsList))
             studentsList.clear()
             studentDictionary.clear()
         case 2:
