@@ -5,6 +5,7 @@ from tabulate import tabulate
 import json
 from openpyxl import Workbook
 
+failedStudentsList=[]
 studentsList = []
 studentDictionary = dict()
 gradeToMarks = {
@@ -66,6 +67,16 @@ def constructData(response, usn):
     except:
         print("Error in constructing data for USN: " + usn)
 
+#function added by vijender to calculate failed students in range of usn's
+def failedStudents(studentsList):
+          
+          for student in studentsList:
+              for subjectCode,grade in student['subjectCodeToGrade'].items():
+                  if 'F' == grade:
+                      failedStudentsList.append(student['usn'])
+                      break
+          return failedStudentsList,len(failedStudentsList)
+          
 
 def getResult(usn):
     try:
@@ -152,7 +163,6 @@ def createExcel(studentsList, filename):
 
     workbook.save(filename)
 
-
 def calculateSubjectWiseAverage(studentsList):
     subjectCodeToGrade = dict()
     subjectCodeToCount = dict()
@@ -224,12 +234,15 @@ def calculateSubjectWiseAverage(studentsList):
     }
 
     showGraph(averageData)
+ 
 
+              
+              
 
 while True:
     choice = int(
         input(
-            "Enter\n1. For entire class data\n2. For individual student data\n3. Exit\n"
+            "Enter\n1.For entire class data\n2.For individual student data\n3.Failed students\n4.Exit\n"
         )
     )
     match choice:
@@ -248,7 +261,16 @@ while True:
             year = input("Enter the year: ")
             studentDictionary = getResult("1ms" + year + branchCode + str(usn).zfill(3))
             showGraph(studentDictionary)
+            studentsList.clear()
+            studentDictionary.clear()
         case 3:
+            getUsnList()
+            failedStudent,count=failedStudents(studentsList)
+            print("There are {} students who failed and their usn's are:\n{}\n".format(count,failedStudent))
+            studentsList.clear()
+            failedStudent.clear()
+            studentDictionary.clear()
+        case 4:
             exit()
         case _:
             print("Invalid choice")
