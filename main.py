@@ -242,7 +242,7 @@ def calculateSubjectWiseAverage(studentsList):
 while True:
     choice = int(
         input(
-            "Enter\n1. For entire class data\n2. For individual student data\n3.Failed students\n4.exit"
+            "Enter\n1.For entire class data\n2.For individual student data\n3.Failed students\n4.Exit\n"
         )
     )
     match choice:
@@ -261,10 +261,13 @@ while True:
             year = input("Enter the year: ")
             studentDictionary = getResult("1ms" + year + branchCode + str(usn).zfill(3))
             showGraph(studentDictionary)
+            studentsList.clear()
+            studentDictionary.clear()
         case 3:
             getUsnList()
             failedStudent,count=failedStudents(studentsList)
-            print("There are {} students who failed and their usn's are: {}".format(count,failedStudent))
+            print("There are {} students who failed and their usn's are:\n{}\n".format(count,failedStudent))
+            studentsList.clear()
             failedStudent.clear()
             studentDictionary.clear()
         case 4:
