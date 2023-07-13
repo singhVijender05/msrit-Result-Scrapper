@@ -6,6 +6,7 @@ import json
 from openpyxl import Workbook
 
 failedStudentsList=[]
+top10CurrentSem=[]
 studentsList = []
 studentDictionary = dict()
 gradeToMarks = {
@@ -76,7 +77,29 @@ def failedStudents(studentsList):
                       failedStudentsList.append(student['usn'])
                       break
           return failedStudentsList,len(failedStudentsList)
-          
+
+
+def getToppersCurrentSem(studentsList):
+        AlltopperTemp=dict()
+
+        for student in studentsList:
+            Name=student['name']
+            if student['sgpa'] == 'TAL':
+             continue
+            Sgpa=student['sgpa']
+            AlltopperTemp[Name]=Sgpa
+        AlltopperTemp=dict(sorted(AlltopperTemp.items(),key=lambda x:float(x[1]),reverse=True))
+        top10CurrentSem=list(AlltopperTemp.items())[:10]  #take top 10 students
+        #construct table from list
+        table_data=top10CurrentSem
+        #add serial no to table
+        table_data = [(sno, name, sgpa) for sno, (name, sgpa) in enumerate(top10CurrentSem,start=1)]
+        print("Top 10 Students of this sem are: \n")
+        table = tabulate(
+            table_data, headers=("No.","Name", "SGPA"), tablefmt="pretty"
+        )
+        print(table)
+    
 
 def getResult(usn):
     try:
@@ -242,7 +265,7 @@ def calculateSubjectWiseAverage(studentsList):
 while True:
     choice = int(
         input(
-            "Enter\n1.For entire class data\n2.For individual student data\n3.Failed students\n4.Exit\n"
+            "Enter\n1.For entire class data\n2.For individual student data\n3.Failed students\n4.Top 10 students\n5.Exit\n"
         )
     )
     match choice:
@@ -271,6 +294,12 @@ while True:
             failedStudent.clear()
             studentDictionary.clear()
         case 4:
-            exit()
+            getUsnList()
+            getToppersCurrentSem(studentsList)
+            top10CurrentSem.clear()
+            studentsList.clear()
+            studentDictionary.clear()
+        case 5:
+            exit(0)
         case _:
             print("Invalid choice")
