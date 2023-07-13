@@ -265,7 +265,7 @@ def calculateSubjectWiseAverage(studentsList):
 while True:
     choice = int(
         input(
-            "Enter\n1.For entire class data\n2.For individual student data\n3.Failed students\n4.Top 10 students\n5.Exit\n"
+            "Enter\n1.For entire class data\n2.For individual student data\n3.For list of Failed students\n4.For list of Top 10 students\n5.Exit\n"
         )
     )
     match choice:
